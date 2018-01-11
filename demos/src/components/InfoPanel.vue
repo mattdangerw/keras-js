@@ -24,6 +24,9 @@
         <div class="info-panel-text" v-else-if="currentView === 'imdb-bidirectional-lstm'">
           This demo is modified from the Keras <a target="_blank" rel="noopener noreferrer" href="https://github.com/keras-team/keras/blob/master/examples/imdb_bidirectional_lstm.py">example</a> demonstrating the Bidirectional wrapper class around an LSTM layer. Click on "load sample text" to populate the textbox with a sample IMDB movie review (preprocessed) from the test set (not used during training). You can also enter your own text into the textbox, but keep in mind the model was trained on IMDB movie reviews only (see the corresponding <a target="_blank" rel="noopener noreferrer" href="https://github.com/transcranial/keras-js/blob/master/notebooks/demos/imdb_bidirectional_lstm.ipynb">Jupyter notebook</a>). The result is a number from 0 (negative) to 1 (positive). We visualize the contributions from each word by running the forward+backward concatenated hidden state corresponding to each word through the final Dense layer.
         </div>
+        <div class="info-panel-text" v-else-if="currentView === 'shakespeare'">
+          This demo is wack.
+        </div>
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>

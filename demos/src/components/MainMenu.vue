@@ -51,6 +51,12 @@
           <span class="menu-item-subheading">IMDB</span>
         </a>
       </li>
+      <li :class="{ active: currentView === 'shakespeare' }">
+        <a href="#/shakespeare">
+          <span class="menu-item-heading">LSTM</span>
+          <span class="menu-item-subheading">Shakespeare</span>
+        </a>
+      </li>
     </ul>
     <p class="menu-label">Links</p>
     <ul class="menu-list github">
