@@ -30,11 +30,7 @@
       </v-flex>
       <v-flex sm12 md4 class="output-container">
         <div class="output-heading">Result:</div>
-        <div class="output-value" :style="{ color: outputColor }">{{ Math.round(output[0] * 100) }}%</div>
-        <div class="output-heading" v-if="isSampleText">
-          <span>Actual label for sample text: </span>
-          <span class="output-label" :class="sampleTextLabel">{{ sampleTextLabel }}</span>
-        </div>
+        <div class="output-value">{{output}}</div>
       </v-flex>
     </v-layout>
   </div>
@@ -47,11 +43,11 @@ import ModelStatus from '../common/ModelStatus'
 
 const MODEL_FILEPATH_PROD =
   'https://transcranial.github.io/keras-js-demos-data/imdb_bidirectional_lstm/imdb_bidirectional_lstm.bin'
-const MODEL_FILEPATH_DEV = 'demos/data/imdb_bidirectional_lstm/imdb_bidirectional_lstm.bin'
+const MODEL_FILEPATH_DEV = 'demos/data/shakespeare/model.bin'
 
 const ADDITIONAL_DATA_FILEPATHS_DEV = {
-  wordIndex: '/demos/data/imdb_bidirectional_lstm/imdb_dataset_word_index_top20000.json',
-  wordDict: '/demos/data/imdb_bidirectional_lstm/imdb_dataset_word_dict_top20000.json',
+  wordIndex: '/demos/data/shakespeare/words.json',
+  wordDict: '/demos/data/shakespeare/indices.json',
   testSamples: '/demos/data/imdb_bidirectional_lstm/imdb_dataset_test.json'
 }
 const ADDITIONAL_DATA_FILEPATHS_PROD = {
@@ -114,7 +110,6 @@ export default {
       wordDict: {},
       testSamples: [],
       isSampleText: false,
-      sampleTextLabel: null,
     }
   },
 
@@ -169,7 +164,6 @@ export default {
 
       const randSampleIdx = _.random(0, this.testSamples.length - 1)
       const values = this.testSamples[randSampleIdx].values
-      this.sampleTextLabel = this.testSamples[randSampleIdx].label === 0 ? 'negative' : 'positive'
 
       const words = values.map(idx => {
         if (idx === 0 || idx === 1) {
