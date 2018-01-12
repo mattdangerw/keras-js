@@ -161,9 +161,9 @@ export default {
       }
 
       this.modelRunning = true
+      this.model.resetStates()
 
       this.inputTextParsed = this.inputText.toLowerCase()
-
       this.input = new Float32Array(1)
       let outputData
       for (let i = 0; i < this.inputTextParsed.length; i++) {
