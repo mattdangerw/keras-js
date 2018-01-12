@@ -142,14 +142,16 @@ export default {
         })
       )
     },
-    sample(weights) {
-      let rand = Math.random()
-      let sum = 0
-      let index = -1
-      while (sum < rand) {
-        sum += weights[++index]
+    max(weights) {
+      let max = -1
+      let maxIndex = 0
+      for (let index = 0; index < weights.length; index++) {
+        if (weights[index] < max)
+          continue
+        maxIndex = index
+        max = weights[index]
       }
-      return index
+      return maxIndex
     },
     inputChanged: _.debounce(async function() {
       if (this.modelRunning) return
@@ -171,7 +173,7 @@ export default {
 
       this.output = ''
       for (let i = 0; i < 200; i++) {
-        let choice = this.sample(outputData.output)
+        let choice = this.max(outputData.output)
         let char = this.wordDict[choice]
         this.output += char
         this.input[0] = choice
