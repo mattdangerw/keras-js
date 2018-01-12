@@ -375,16 +375,16 @@ export default class Model {
     let weightNames = []
     if (layerClass === 'Bidirectional') {
       const forwardWeightNames = layer.forwardLayer.params.map(
-        param => `${layerConfig.name}/forward_${layerConfig.layer.config.name}/${param}`
+        param => `${layerConfig.name}_1/forward_${layerConfig.layer.config.name}/${param}`
       )
       const backwardWeightNames = layer.backwardLayer.params.map(
-        param => `${layerConfig.name}/backward_${layerConfig.layer.config.name}/${param}`
+        param => `${layerConfig.name}_1/backward_${layerConfig.layer.config.name}/${param}`
       )
       weightNames = forwardWeightNames.concat(backwardWeightNames)
     } else if (layerClass === 'TimeDistributed') {
-      weightNames = layer.wrappedLayer.params.map(param => `${layerConfig.name}/${param}`)
+      weightNames = layer.wrappedLayer.params.map(param => `${layerConfig.name}_1/${param}`)
     } else {
-      weightNames = layer.params.map(param => `${layerConfig.name}/${param}`)
+      weightNames = layer.params.map(param => `${layerConfig.name}_1/${param}`)
     }
 
     if (weightNames && weightNames.length) {
