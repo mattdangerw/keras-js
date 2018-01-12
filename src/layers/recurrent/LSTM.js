@@ -634,4 +634,9 @@ export default class LSTM extends Layer {
       this.output.transferFromGLTexture()
     }
   }
+
+  resetStates() {
+    this.previousCandidate = undefined
+    this.currentHiddenState = undefined
+  }
 }
