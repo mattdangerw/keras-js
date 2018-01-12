@@ -19,18 +19,12 @@
           color="primary"
           @input.native="inputChanged"
         ></v-text-field>
+        <div>{{output}}</div>
         <div class="input-buttons">
-          <v-btn :disabled="modelLoading || modelInitializing" flat bottom right color="primary" @click="randomSample">
-            <v-icon left>add_circle</v-icon>LOAD SAMPLE TEXT
-          </v-btn>
           <v-btn :disabled="modelLoading || modelInitializing" flat bottom right color="primary" @click="clear">
             <v-icon left>clear</v-icon>CLEAR
           </v-btn>
         </div>
-      </v-flex>
-      <v-flex sm12 md4 class="output-container">
-        <div class="output-heading">Result:</div>
-        <div class="output-value">{{output}}</div>
       </v-flex>
     </v-layout>
   </div>
@@ -46,8 +40,8 @@ const MODEL_FILEPATH_PROD =
 const MODEL_FILEPATH_DEV = 'demos/data/shakespeare/model.bin'
 
 const ADDITIONAL_DATA_FILEPATHS_DEV = {
-  wordIndex: '/demos/data/shakespeare/words.json',
-  wordDict: '/demos/data/shakespeare/indices.json',
+  wordIndex: '/demos/data/shakespeare/indices.json',
+  wordDict: '/demos/data/shakespeare/words.json',
   testSamples: '/demos/data/imdb_bidirectional_lstm/imdb_dataset_test.json'
 }
 const ADDITIONAL_DATA_FILEPATHS_PROD = {
@@ -59,14 +53,6 @@ const ADDITIONAL_DATA_FILEPATHS_PROD = {
 }
 const ADDITIONAL_DATA_FILEPATHS =
   process.env.NODE_ENV === 'production' ? ADDITIONAL_DATA_FILEPATHS_PROD : ADDITIONAL_DATA_FILEPATHS_DEV
-
-const MAXLEN = 200
-
-// start index, out-of-vocabulary index
-// see https://github.com/keras-team/keras/blob/master/keras/datasets/imdb.py
-const START_WORD_INDEX = 1
-const OOV_WORD_INDEX = 2
-const INDEX_FROM = 3
 
 export default {
   props: ['hasWebGL'],
@@ -102,14 +88,13 @@ export default {
       modelInitializing: true,
       modelInitProgress: 0,
       modelRunning: false,
-      input: new Float32Array(MAXLEN),
-      output: new Float32Array(1),
+      input: new Float32Array(1),
+      output: '',
       inputText: '',
       inputTextParsed: [],
       wordIndex: {},
       wordDict: {},
       testSamples: [],
-      isSampleText: false,
     }
   },
 
@@ -141,8 +126,7 @@ export default {
     clear() {
       this.inputText = ''
       this.inputTextParsed = []
-      this.output = new Float32Array(1)
-      this.isSampleText = false
+      this.output = ''
     },
     loadAdditionalData() {
       this.modelLoading = true
@@ -158,68 +142,43 @@ export default {
         })
       )
     },
-    randomSample() {
-      this.modelRunning = true
-      this.isSampleText = true
-
-      const randSampleIdx = _.random(0, this.testSamples.length - 1)
-      const values = this.testSamples[randSampleIdx].values
-
-      const words = values.map(idx => {
-        if (idx === 0 || idx === 1) {
-          return ''
-        } else if (idx === 2) {
-          return '<OOV>'
-        } else {
-          return this.wordDict[idx - INDEX_FROM]
-        }
-      })
-
-      this.inputText = words.join(' ').trim()
-      this.inputTextParsed = words.filter(w => !!w)
-
-      this.input = new Float32Array(values)
-      this.model.predict({ input: this.input }).then(outputData => {
-        this.output = new Float32Array(outputData.output)
-        this.modelRunning = false
-      })
+    sample(weights) {
+      let rand = Math.random()
+      let sum = 0
+      let index = -1
+      while (sum < rand) {
+        sum += weights[++index]
+      }
+      return index
     },
-    inputChanged: _.debounce(function() {
+    inputChanged: _.debounce(async function() {
       if (this.modelRunning) return
-      if (this.inputText.trim() === '') {
+      if (this.inputText === '') {
         this.inputTextParsed = []
         return
       }
 
       this.modelRunning = true
-      this.isSampleText = false
 
-      this.inputTextParsed = this.inputText
-        .trim()
-        .toLowerCase()
-        .split(/[\s.,!?]+/gi)
+      this.inputTextParsed = this.inputText.toLowerCase()
 
-      this.input = new Float32Array(MAXLEN)
-      // by convention, use 2 as OOV word
-      // reserve 'index_from' (=3 by default) characters: 0 (padding), 1 (start), 2 (OOV)
-      // see https://github.com/keras-team/keras/blob/master/keras/datasets/imdb.py
-      let indices = this.inputTextParsed.map(word => {
-        const index = this.wordIndex[word]
-        return !index ? OOV_WORD_INDEX : index + INDEX_FROM
-      })
-      indices = [START_WORD_INDEX].concat(indices)
-      indices = indices.slice(-MAXLEN)
-      // padding and truncation (both pre sequence)
-      const start = Math.max(0, MAXLEN - indices.length)
-      for (let i = start; i < MAXLEN; i++) {
-        this.input[i] = indices[i - start]
+      this.input = new Float32Array(1)
+      let outputData
+      for (let i = 0; i < this.inputTextParsed.length; i++) {
+        this.input[0] = this.wordIndex[this.inputTextParsed.charAt(i)]
+        outputData = await this.model.predict({ input: this.input })
       }
 
-      this.model.predict({ input: this.input }).then(outputData => {
-        this.output = new Float32Array(outputData.output)
-        this.modelRunning = false
-      })
-    }, 200),
+      this.output = ''
+      for (let i = 0; i < 200; i++) {
+        let choice = this.sample(outputData.output)
+        let char = this.wordDict[choice]
+        this.output += char
+        this.input[0] = choice
+        outputData = await this.model.predict({ input: this.input })
+      }
+      this.modelRunning = false
+    }, 20),
   }
 }
 </script>
